@@ -7,25 +7,51 @@ public static void main(String[] args) {
 		BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		DataOutputStream dout = new DataOutputStream(s.getOutputStream());
 		
-		//hello = "HELO\n"
-		//authentication = "AUTH user.name\n";
-		//connection
+		String serverMessage;
+		
+		//Connection
 		dout.write(("HELO\n").getBytes());
-		//change to print
-		String str = (String)in.readLine();			
-			
-		//authentication
+		String str = (String)in.readLine();
+		System.out.println(str);
+		
+		//Authentication
 		dout.write(("AUTH user.name\n").getBytes());
 		str = (String)in.readLine();
+		System.out.println(str);
 		
 		dout.write(("REDY\n").getBytes());
 		str = (String)in.readLine();
+		System.out.println(str);
 		
-		//int JobID = 0;		
+		dout.write(("GETS All\n").getBytes());
+		str = (String)in.readLine();
+		System.out.println(str);
+						
+		dout.write(("OK\n").getBytes());
+		str = (String)in.readLine();
+		System.out.println(str);
 		
+		String[] split = str.split(" ");
+		
+		
+		if(!str.equals("NONE")) {
+			for(int JobID = 0; JobID < 10; JobID++) {
+				//serverMessage = in.readLine();
+				//System.out.println("Server " + serverMessage);
+				dout.write(("OK\n").getBytes());
+				str = (String)in.readLine();
+				System.out.println(str);
+				dout.write(("SCHD " + JobID + " joon" + " \n").getBytes());
+				str = (String)in.readLine();
+				System.out.println(str);
+
+			}
+		}
 		dout.write(("QUIT\n").getBytes());
 		str = (String)in.readLine();
 		
+		for (String t : split)
+  			System.out.println(t);
 
 		dout.flush();
 		dout.close();
