@@ -3,12 +3,10 @@ import java.net.*;
 public class MyClient {
 public static void main(String[] args) {
 	try {      
-		Socket s = new Socket("127.0.0.1", 60000);
+		Socket s = new Socket("127.0.0.1", 50000);
 		BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		DataOutputStream dout = new DataOutputStream(s.getOutputStream());
-		
-		String serverMessage;
-		
+				
 		//Connection
 		dout.write(("HELO\n").getBytes());
 		String str = (String)in.readLine();
@@ -23,35 +21,33 @@ public static void main(String[] args) {
 		str = (String)in.readLine();
 		System.out.println(str);
 		
-		dout.write(("GETS All\n").getBytes());
+		dout.write(("GETS Capable 3 500 1000\n").getBytes());
 		str = (String)in.readLine();
 		System.out.println(str);
-						
+							
 		dout.write(("OK\n").getBytes());
 		str = (String)in.readLine();
 		System.out.println(str);
 		
-		String[] split = str.split(" ");
-		
-		
-		if(!str.equals("NONE")) {
-			for(int JobID = 0; JobID < 10; JobID++) {
-				//serverMessage = in.readLine();
-				//System.out.println("Server " + serverMessage);
-				dout.write(("OK\n").getBytes());
-				str = (String)in.readLine();
-				System.out.println(str);
-				dout.write(("SCHD " + JobID + " joon" + " \n").getBytes());
-				str = (String)in.readLine();
-				System.out.println(str);
-
+		for(int JobID = 0; JobID < 10; JobID++) {
+			if(str.equals("NONE")) {
+				break;
 			}
+			dout.write(("OK\n").getBytes());
+			str = (String)in.readLine();
+			System.out.println(str);
+			String[] split = str.split(" ");
+
+			dout.write(("SCHD " + JobID + " joon" + "\n").getBytes());
+			str = (String)in.readLine();
+			System.out.println(str);
+			
+			dout.write(("REDY\n").getBytes());
+			str = (String)in.readLine();
 		}
+		
 		dout.write(("QUIT\n").getBytes());
 		str = (String)in.readLine();
-		
-		for (String t : split)
-  			System.out.println(t);
 
 		dout.flush();
 		dout.close();
@@ -60,4 +56,7 @@ public static void main(String[] args) {
 		catch(Exception e){System.out.println(e);}
 	}
 }
-
+		//String[] split = str.split(" ");
+		//for (String t : split)
+  		//	System.out.println(t);
+		//dout.write(("SCHD " + JobID + " " + split[0] + "\n").getBytes());
