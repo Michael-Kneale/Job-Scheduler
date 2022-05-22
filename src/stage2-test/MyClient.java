@@ -10,6 +10,7 @@ class Server {
 	int serverMemory;
 	int serverDisk;
 	
+	//Used to construct the Server using the server variables obtained from reading records
 	public Server(String[] array) {
 		      this.serverType = array[0];
 		      this.serverID = Integer.parseInt(array[1]);
@@ -36,8 +37,8 @@ public static void main(String[] args) {
 		
 		//Get user name from the system to be used in authentication
 		//Initialise array (for storing data sent from server e.g. job information)
-		//Initialise mostCoresType, which keeps track
-		//of which server type has the most cores
+		//Initialise a Server class, primarily to keep track of which server type has
+		//the most cores
 		String username = System.getProperty("user.name");
 		String[] array = {"0", "0", "0", "0", "0", "0", "0", "0", "0"};
 		Server server = new Server(array);
@@ -99,12 +100,11 @@ public static void main(String[] args) {
 				int currentCoresNo = Integer.parseInt(array[4]);
 				String currentType = array[0];
 				
-				//If the mostCoresType variable is null (i.e. it's the first time
+				//If the serverType variable is null (i.e. it's the first time
 				//this loop has run) or the current number of cores is greater
 				//than the previous greatest number, then the server type with the
 				//most cores must be the current type.
-				//The most cores is the current number of cores, and the
-				//serverCount is set to one, as this is the first record of what is
+				//ServerCount is set to one, as this is the first record of what is
 				//(thus far) the largest server.	
 				if(server.serverType == (null) || currentCoresNo > server.serverCoresNo) {
 					server = new Server(array);
