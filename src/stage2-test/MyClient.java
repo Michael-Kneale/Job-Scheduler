@@ -5,6 +5,7 @@ class Server {
 	String serverType;
 	int serverID;
 	int serverLimit;
+	String serverLimitString;
 	float serverHourlyRate;
 	int serverCoresNo;
 	int serverMemory;
@@ -16,6 +17,9 @@ class Server {
 		      this.serverID = Integer.parseInt(array[1]);
 		      if(!(array[2] instanceof String)) {
 		      	this.serverLimit = Integer.parseInt(array[2]);
+		      }
+		      else {
+		      	this.serverLimitString = array[2];
 		      }
 		      this.serverHourlyRate = Float.parseFloat(array[3]);
 		      this.serverCoresNo = Integer.parseInt(array[4]);
@@ -37,11 +41,10 @@ public static void main(String[] args) {
 		
 		//Get user name from the system to be used in authentication
 		//Initialise array (for storing data sent from server e.g. job information)
-		//Initialise a Server class, primarily to keep track of which server type has
-		//the most cores
 		String username = System.getProperty("user.name");
 		String[] array = {"0", "0", "0", "0", "0", "0", "0", "0", "0"};
 		Server server = new Server(array);
+		Server firstServer = new Server(array);
 		
 		//Communicate with server
 		dout.write(("HELO\n").getBytes());
@@ -53,10 +56,7 @@ public static void main(String[] args) {
 		
 		//Main scheduling loop continues until the break condition within the code,
 		//receiving NONE from the server, is met
-		while(true) {
-			//Reset the number of servers to be 0 at the start of each loop
-			int serverCount = 0;
-			
+		for(;;) {			
 			//Send REDY to server to indicate that
 			//client is ready for information from server
 			dout.write(("REDY\n").getBytes());
@@ -80,8 +80,10 @@ public static void main(String[] args) {
 			//Send GETS command to find out information about server
 			dout.write(("GETS Capable " + array[4] + " " +
 				   array[5] + " " + array[6] + "\n").getBytes());
-			str = (String)in.readLine();
+				   
 			String jobID = array[2];
+			int jobMemory = Integer.parseInt(array[4]);
+			str = (String)in.readLine();
 			
 			//Split data so number of records can be easily obtained
 			array = str.split(" ");
@@ -90,44 +92,51 @@ public static void main(String[] args) {
 			//Send OK to server to begin receiving records
 			dout.write(("OK\n").getBytes());		
 			
+			//Keeps track of whether the first server has been created
+			Boolean noFirstServer = true;
+			
+			
 			//Loop continues for the number of records there are
 			for(int i = 0; i < noOfRecords; i++) {
-				//Read the record and split it by space so it can be easily handled
+				
+				//Read record information and split it so that information
+				//is easily obtained
 				str = (String)in.readLine();
 				array = str.split(" ");
+
+				//Obtain information that helps figure out which server fits
+				String thing = array[2];
 				
-				//Find out current number of cores and server type from record
-				int currentCoresNo = Integer.parseInt(array[4]);
-				String currentType = array[0];
+				int serverMemory = Integer.parseInt(array[4]);	
+				int waitingJobs = Integer.parseInt(array[7]);
+				int runningJobs = Integer.parseInt(array[8]);
 				
-				//If the serverType variable is null (i.e. it's the first time
-				//this loop has run) or the current number of cores is greater
-				//than the previous greatest number, then the server type with the
-				//most cores must be the current type.
-				//ServerCount is set to one, as this is the first record of what is
-				//(thus far) the largest server.	
-				if(server.serverType == (null) || currentCoresNo > server.serverCoresNo) {
+				//firstServer is created using the first record, and
+				//is only used if a server that fits is not found
+				if(noFirstServer) {
+					firstServer = new Server(array);
+					noFirstServer = false;
+				}
+				
+				if(jobMemory <= serverMemory && (waitingJobs == 0 ||
+				   runningJobs == 0)) {
 					server = new Server(array);
-					server.serverType = currentType;
-					server.serverCoresNo = currentCoresNo;
-					serverCount = 1;
+					break;
 				}
 				
-				//If the server type with the most cores is the current server type,
-				//then increment the variable that keeps track of how many servers
-				//of the largest type exist
-				if(server.serverType.equals(currentType)) {
-					serverCount++;
+				else if(i == noOfRecords - 1) {
+					server = firstServer;
 				}
+				
 			}
 			
 			//Send OK after all the records have been received
 			dout.write(("OK\n").getBytes());
 			str = (String)in.readLine();
 			
-			//Schedule a job to the server with the most cores
+			//Schedule a job
 			dout.write(("SCHD " + jobID + " " + server.serverType + " " +
-				   (Integer.parseInt(jobID) % serverCount) + "\n").getBytes());
+				   server.serverID + "\n").getBytes());
 			str = (String)in.readLine();
 			
 			//Wait for "OK" response from server to indicate that
